@@ -9,16 +9,30 @@ describe("BUILTIN_PROVIDERS MiniMax", () => {
     expect(minimax).toBeDefined();
   });
 
-  it("uses MiniMax-M3 as default model", () => {
-    expect(minimax!.defaultModel).toBe("MiniMax-M3");
+  it("uses MiniMax-M3.1-Flash as default model", () => {
+    expect(minimax!.defaultModel).toBe("MiniMax-M3.1-Flash");
   });
 
-  it("lists MiniMax-M3 and MiniMax-M2.7", () => {
-    expect(minimax!.models).toEqual(["MiniMax-M3", "MiniMax-M2.7"]);
+  it("lists only current built-in models with Flash first", () => {
+    expect(minimax!.models).toEqual(["MiniMax-M3.1-Flash", "MiniMax-M3"]);
     expect(getModelsForProvider("minimax")).toEqual([
+      { id: "MiniMax-M3.1-Flash", name: "MiniMax-M3.1-Flash" },
       { id: "MiniMax-M3", name: "MiniMax-M3" },
-      { id: "MiniMax-M2.7", name: "MiniMax-M2.7" },
     ]);
+  });
+
+  it("preserves explicitly configured legacy and custom models", () => {
+    const models = [
+      { id: "MiniMax-M2.7", name: "Saved model", maxTokens: 4096 },
+      { id: "custom-model", name: "Custom model" },
+    ];
+    expect(getModelsForProvider("minimax", { models })).toBe(models);
+    expect(getModelsForProvider("custom-provider", { models })).toBe(models);
+  });
+
+  it("round-trips the Flash model reference", () => {
+    const ref = formatModelRef("minimax", "MiniMax-M3.1-Flash");
+    expect(parseModelRef(ref)).toEqual({ provider: "minimax", modelId: "MiniMax-M3.1-Flash" });
   });
 
   it("uses Anthropic Messages API endpoint", () => {
@@ -63,6 +77,20 @@ describe("BUILTIN_PROVIDERS NEAR AI Cloud", () => {
 
   it("has NEAR AI Cloud label", () => {
     expect(nearai!.label).toBe("NEAR AI Cloud");
+  });
+});
+
+describe("legacy gateway selection", () => {
+  it("does not suggest an obsolete MiniMax gateway model", () => {
+    expect(getModelsForProvider("synthetic")).toEqual([]);
+  });
+
+  it("preserves an explicitly saved gateway model", () => {
+    const models = [{ id: "hf:MiniMaxAI/MiniMax-M2.1" }];
+    expect(getModelsForProvider("synthetic", { models })).toBe(models);
+    expect(parseModelRef("synthetic/hf:MiniMaxAI/MiniMax-M2.1")).toEqual({
+      provider: "synthetic", modelId: "hf:MiniMaxAI/MiniMax-M2.1",
+    });
   });
 });
 

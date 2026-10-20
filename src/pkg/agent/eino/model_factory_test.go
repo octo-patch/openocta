@@ -64,8 +64,8 @@ func TestBuiltInMiniMaxProvider(t *testing.T) {
 	if !ok {
 		t.Fatal("expected MiniMax built-in provider")
 	}
-	if provider.defaultModel != "MiniMax-M3" {
-		t.Fatalf("default model = %q, want MiniMax-M3", provider.defaultModel)
+	if provider.defaultModel != "MiniMax-M3.1-Flash" {
+		t.Fatalf("default model = %q, want MiniMax-M3.1-Flash", provider.defaultModel)
 	}
 	if provider.baseURL != "https://api.minimax.io/anthropic" {
 		t.Fatalf("base URL = %q, want global Anthropic-compatible base URL", provider.baseURL)
